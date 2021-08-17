@@ -7,13 +7,14 @@
 
 import UIKit
 
-class ViewController: UITableViewController {
+class ViewController: UITableViewController, UIImagePickerControllerDelegate & UINavigationControllerDelegate {
     
     var pictures = [Photo]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .camera, target: self, action: #selector(addNewPhoto))
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -31,10 +32,50 @@ class ViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
             let picture = pictures[indexPath.row]
-            vc.image = picture.fileName
+            let path = getDocumentsDirectory().appendingPathComponent(picture.fileName)
+            vc.imagePath = path
+//            vc.image = picture.fileName
             vc.caption = picture.caption
             navigationController?.pushViewController(vc, animated: true)
         }
+    }
+    
+    @objc func addNewPhoto() {
+        let picker = UIImagePickerController()
+        
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            picker.sourceType = .camera
+            print("camera - picker sourcetype: \(picker.sourceType)")
+        } else {
+            picker.sourceType = .photoLibrary
+            print("photoLibrary - picker sourcetype: \(picker.sourceType)")
+        }
+        
+        picker.allowsEditing = true
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        guard let image = info[.editedImage] as? UIImage else { return }
+        
+        let imageName = UUID().uuidString
+        let imagePath = getDocumentsDirectory().appendingPathComponent(imageName)
+        
+        if let jpegData = image.jpegData(compressionQuality: 0.8) {
+            try? jpegData.write(to: imagePath)
+        }
+        
+        let picture = Photo(fileName: imageName, caption: "blank")
+        pictures.insert(picture, at: 0)
+        tableView.reloadData()
+        
+        dismiss(animated: true)
+    }
+    
+    func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
     }
 
 }

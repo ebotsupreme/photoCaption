@@ -9,14 +9,15 @@ import UIKit
 
 class DetailViewController: UIViewController {
     @IBOutlet var imageView: UIImageView!
-    var image: String?
+    var imagePath: URL?
+//    var image: String?
     var caption: String?
     
     override func viewDidLoad() {
         title = caption
         
-        if let imageToLoad = image {
-            imageView.image = UIImage(named: imageToLoad)
+        if let imageToLoad = imagePath {
+            imageView.image = UIImage(contentsOfFile: imageToLoad.path)
         }
     }
 }
