@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Photo {
+struct Photo: Codable {
     let fileName: String
-    let caption: String
+    var caption: String
 }
